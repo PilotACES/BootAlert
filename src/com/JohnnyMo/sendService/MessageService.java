@@ -1,18 +1,30 @@
 package com.JohnnyMo.sendService;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -44,9 +56,13 @@ public class MessageService {
 		Map<String,String> paramsMap = new HashMap<String, String>();
 		try {
 			String sysInfo = systemInfo.getSystemBootTime();
+			this.writeBootInfo(alertMessage, sysInfo, "1");
 			paramsMap.put("text", alertMessage);		//微信提示标题
 			paramsMap.put("desp", sysInfo);		//长消息内容
 			sendResult = this.sendMessage(sendServiceUrl, SCKEY, paramsMap, "UTF-8");
+			if(!sendResult.equals("") || !sendResult.equals("no response")){
+				this.writeBootInfo(alertMessage, sysInfo, "0");
+			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -89,12 +105,76 @@ public class MessageService {
 				}else{
 					result = "no response";
 				}
+			}else{
+				result = "no response";
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return result;
+	}
+	
+	/**
+	 * 写入历史开机记录
+	 * @param title 标题
+	 * @param desp 长内容
+	 */
+	public void writeBootInfo(String title, String desp, String status) {
+		InputStream in = null;
+		OutputStream out = null;
+		try {
+			File bootFile = new File("bootHis.properties");
+			if(!bootFile.exists()){
+				bootFile.createNewFile();
+			}
+			in = new BufferedInputStream(new FileInputStream(bootFile));
+			out = new FileOutputStream(bootFile);
+			Properties pro = new Properties();
+			pro.load(in);
+			pro.setProperty("title", title);
+			pro.setProperty("desp", desp);
+			pro.setProperty("status",status);
+			pro.store(out, "Update boot history");
+			out.flush();
+			out.close();
+			in.close();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * 尝试重新发送开机信息
+	 * @return
+	 */
+	public boolean reSendBootInfo(){
+		boolean sendResult = false;
+		try {
+			File bootFile = new File("bootHis.properties");
+			if(bootFile.exists()){
+				Properties pro = new Properties();				//读取历史记录
+				InputStream in = new BufferedInputStream(new FileInputStream(bootFile));
+				pro.load(in);
+				String statusValue = pro.getProperty("status");
+				if(!statusValue.equals("0")){				//判断该记录是否发送过
+					Map<String, String> paramsMap = new HashMap<String, String>();
+					String textValue = pro.getProperty("title");
+					String despValue = pro.getProperty("desp");
+					paramsMap.put("text", textValue);
+					paramsMap.put("desp", despValue);
+					String result = this.sendMessage(sendServiceUrl, SCKEY, paramsMap, "UTF-8");
+					if(!result.equals("") || !result.equals("no response")){				//是否发送成功
+						sendResult = true;
+					}
+				}
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return sendResult;
 	}
 	
 	/*public static void main(String[] args) {
