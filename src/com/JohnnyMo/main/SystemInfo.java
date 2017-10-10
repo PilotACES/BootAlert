@@ -14,7 +14,7 @@ public class SystemInfo {
 			BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream(),"GBK"));
 			int i = 0;
 			String info = "";
-			while((info = br.readLine()) != null){
+			while((info = br.readLine()) != null){		//获取系统启动时间
 				if(i == 11){
 					bootTime += info.replace(" ", "");
 					break;

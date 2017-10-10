@@ -8,5 +8,4 @@ public class MainT {
 		MessageService ms = new MessageService();
 		ms.sendPost();
 	}
-
 }

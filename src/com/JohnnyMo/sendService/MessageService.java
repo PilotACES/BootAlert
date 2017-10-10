@@ -28,7 +28,7 @@ import com.JohnnyMo.main.SystemInfo;
 /**
  * 
  * @author Johnny Mo
- * @version ALPHA 0.1 Hotfix
+ * @version ALPHA 0.1
  *
  */
 public class MessageService {
@@ -37,7 +37,6 @@ public class MessageService {
 	private static String SCKEY = "SCU11937T3197efd6904b7910395c6d558ce8440259c1d79e8e7ae";
 	private String endMark = ".send";
 	private String alertMessage = "主人！！！！有熊孩子在动你的电脑！(｀･ω･´)赶紧干掉他！";
-	private String despInfo = "&desp=";
 	private SystemInfo systemInfo = new SystemInfo();
 	
 	public String sendPost() {
@@ -45,9 +44,8 @@ public class MessageService {
 		Map<String,String> paramsMap = new HashMap<String, String>();
 		try {
 			String sysInfo = systemInfo.getSystemBootTime();
-			//String sysInfo = new String(systemInfo.getSystemBootTime().getBytes("iso-8859-1"),"UTF-8");
-			paramsMap.put("text", alertMessage);
-			paramsMap.put("desp", sysInfo);
+			paramsMap.put("text", alertMessage);		//微信提示标题
+			paramsMap.put("desp", sysInfo);		//长消息内容
 			sendResult = this.sendMessage(sendServiceUrl, SCKEY, paramsMap, "UTF-8");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -57,7 +55,7 @@ public class MessageService {
 	}
 	
 	/**
-	 * 通过POST请求
+	 * POST请求发送
 	 * @param url
 	 * @param sckey
 	 * @param map
